@@ -65,7 +65,7 @@ Details, including clock-offset correction: [docs/architecture.md](docs/architec
 
 ## Develop
 
-Requirements: Node.js 20+, Spresenter ≥ 0.3.0.
+Requirements: Node.js 22+, Spresenter ≥ 0.3.0.
 
 ```bash
 npm ci

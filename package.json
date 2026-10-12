@@ -11,7 +11,7 @@
     "url": "https://github.com/fadao23/planning-center-timers-spresenter.git"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build:code": "vite build --config vite.code.config.ts",

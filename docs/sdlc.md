@@ -36,8 +36,9 @@ Automated — the **CI** workflow on every push and pull request:
 | Unit tests      | `npm run test:coverage`  | A test fails or `src/core` coverage drops below 85 % lines / 80 % branches |
 | Build + package | `npm run package`        | The plugin can't be built or zipped                                        |
 
-It runs on Node 20 and 22, and uploads the installable `.zip` as a build
-artifact so reviewers can install exactly what CI built.
+It runs on Node 22 and 24, and uploads the installable `.zip` as a build
+artifact (unwrapped: it downloads as the file Spresenter installs) so reviewers
+can install exactly what CI built.
 
 Governance — the **PR governance** workflow checks the branch flow and the
 Conventional Commit PR title.
