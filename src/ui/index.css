@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+}
+
+.pco-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.pco-clock--over {
+  color: var(--sp-danger);
+}
+
+.pco-clock--idle {
+  color: var(--sp-text-faint);
+}
+
+.pco-item {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pco-meta {
+  font-size: 12px;
+  color: var(--sp-text-muted);
+}
+
+.pco-code {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
