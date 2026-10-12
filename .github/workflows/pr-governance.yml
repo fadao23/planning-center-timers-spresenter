@@ -1,0 +1,48 @@
+name: PR governance
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  gitflow:
+    name: Git flow branch rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source → target
+        env:
+          HEAD: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          echo "PR: $HEAD → $BASE"
+          case "$BASE" in
+            main)
+              [[ "$HEAD" =~ ^(release|hotfix)/[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+                echo "::error::Only release/X.Y.Z or hotfix/X.Y.Z may merge into main (got '$HEAD')."; exit 1; }
+              ;;
+            develop)
+              [[ "$HEAD" =~ ^(feature|fix|chore|docs|release|hotfix|dependabot)/.+$ || "$HEAD" == "main" ]] || {
+                echo "::error::Branch '$HEAD' does not follow Git flow naming (feature/*, fix/*, chore/*, docs/*, release/*, hotfix/*)."; exit 1; }
+              ;;
+          esac
+          echo "OK"
+
+  title:
+    name: Conventional Commit title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: .+'
+          if [[ "$TITLE" =~ $pattern ]]; then
+            echo "OK: $TITLE"
+          else
+            echo "::error::PR title must follow Conventional Commits, e.g. 'feat(live): take control on first advance'. Got: $TITLE"
+            exit 1
+          fi
