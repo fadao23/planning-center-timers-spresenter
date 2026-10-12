@@ -1,0 +1,14 @@
+{
+  "id": "io.github.fadao23.pco-timers",
+  "name": "Planning Center Timers",
+  "version": "0.1.0",
+  "description": "Control Planning Center Services LIVE from Spresenter and keep the Spresenter timer on the current plan item.",
+  "author": "Fernando Borja",
+  "minAppVersion": "0.3.0",
+  "sdk": "0.4.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui/index.html",
+  "permissions": ["net:connect", "timer:read", "timer:write"],
+  "panels": [{ "id": "main", "title": "Planning Center", "icon": "timer" }],
+  "background": true
+}
