@@ -36,3 +36,34 @@ describe('parseUiMessage', () => {
     }
   });
 });
+
+describe('parseUiMessage — stage display', () => {
+  it('accepts the simple stage commands', () => {
+    for (const type of ['stage-show', 'stage-hide', 'stage-refresh-targets']) {
+      expect(parseUiMessage({ type })).toEqual({ type });
+    }
+  });
+
+  it('validates stage configuration fields', () => {
+    expect(
+      parseUiMessage({ type: 'stage-configure', output: '1', layer: 3, layout: 'bar' }),
+    ).toEqual({ type: 'stage-configure', output: '1', layer: 3, layout: 'bar' });
+    expect(parseUiMessage({ type: 'stage-configure', output: 2 })).toEqual({
+      type: 'stage-configure',
+      output: '2',
+    });
+    for (const bad of [
+      {},
+      { output: 'main' },
+      { output: '' },
+      { layer: -1 },
+      { layer: 1.5 },
+      { layer: 100 },
+      { layer: '2' },
+      { layout: 'huge' },
+      { layout: 3 },
+    ]) {
+      expect(parseUiMessage({ type: 'stage-configure', ...bad })).toBeNull();
+    }
+  });
+});
