@@ -1,0 +1,6 @@
+dist/
+release/
+coverage/
+sdk/
+package-lock.json
+CHANGELOG.md
