@@ -11,6 +11,8 @@ drives **Planning Center Services LIVE** from Spresenter and keeps the
   Planning Center LIVE moves with you.
 - The Spresenter timer counts down the item's planned length from the moment
   Planning Center started it, and goes negative on overrun — same clock as LIVE.
+- **Stage display:** the countdown, current item and next item drawn directly on
+  your stage screen (full screen or a bottom bar over the lyrics).
 - The countdown runs locally in real time: **one API call per item change**, plus
   a light once-a-minute check that catches changes made in Planning Center itself.
 
@@ -22,7 +24,8 @@ drives **Planning Center Services LIVE** from Spresenter and keeps the
 1. Download `io.github.fadao23.pco-timers-<version>.zip` from
    [Releases](https://github.com/fadao23/planning-center-timers-spresenter/releases).
 2. In Spresenter (0.3.0 or later): **Settings → Plugins → Install (.zip/folder)**.
-3. Approve the permissions: network (to reach Planning Center), timer read/write.
+3. Approve the permissions: network (to reach Planning Center), timer read/write,
+   outputs read and live write (for the stage display).
 
 ## Use
 
@@ -35,6 +38,19 @@ drives **Planning Center Services LIVE** from Spresenter and keeps the
 4. Press **Next** when the service starts. The plugin takes LIVE control if
    needed, advances Planning Center, and sets the Spresenter timer.
 
+### Stage display
+
+In the panel's **Stage display** section:
+
+1. **Output:** pick your stage screen. **Layer:** the layer to draw on (use one
+   above the lyrics if you choose the bottom bar).
+2. **Layout:** _Full screen_ (black, big countdown, current/next item, time of
+   day) or _Bottom bar_ (transparent; the layers below stay visible).
+3. **Show on stage.** The countdown updates every second, turns amber in the
+   last minute and red (negative) on overrun, and follows Next / Previous.
+   **Hide from stage** clears the layer. It comes back by itself after a
+   Spresenter restart if it was on.
+
 ### Stream Deck / automations
 
 The plugin exposes named actions on Spresenter's API:
@@ -45,6 +61,8 @@ POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/previous
 POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/resync
 POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/take-control
 POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/release-control
+POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/stage-show
+POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/stage-hide
 POST /api/v1/plugins/io.github.fadao23.pco-timers/requests/status
 ```
 

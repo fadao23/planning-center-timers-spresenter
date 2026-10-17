@@ -53,6 +53,24 @@ Spresenter.
 - [ ] D3 Stream Deck / automation: `POST …/requests/next` advances exactly like
       the panel button.
 
+## E. Stage display
+
+- [ ] E1 Updating the plugin asks to approve **outputs read** and **live write**.
+- [ ] E2 The **Output** list shows your outputs, including the stage screen.
+- [ ] E3 **Show on stage** (Full screen) → the stage screen shows the countdown,
+      current item, "Item x / y", next item and the time of day.
+- [ ] E4 The stage countdown matches the panel and Planning Center LIVE (≤ 1 s)
+      and ticks every second — also with the panel closed (if not, note it: the
+      panel heartbeat is the fallback when the vm has no timers).
+- [ ] E5 Last 60 s → amber; overrun → red and negative.
+- [ ] E6 **Next** / **Previous** → the stage changes item immediately.
+- [ ] E7 Layout **Bottom bar** on a layer above the lyrics → lyrics stay visible,
+      bar at the bottom.
+- [ ] E8 Change **Layer** while on screen → it moves; the old layer is cleared.
+- [ ] E9 **Hide from stage** → layer cleared. **Show** again → back.
+- [ ] E10 Restart Spresenter with the display on → it comes back by itself.
+- [ ] E11 Stream Deck: `POST …/requests/stage-show` and `…/stage-hide` work.
+
 ## Result
 
 Record in the PR: Spresenter version, OS, plugin version, pass/fail per line,

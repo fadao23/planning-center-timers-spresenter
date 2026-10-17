@@ -32,6 +32,17 @@ offset = live_start_at − (sentAt + receivedAt) / 2
 Estimates from slow round trips (> 3 s) or absurd values (> 10 min) are ignored.
 The offset is stored and reused after a restart.
 
+## Stage display
+
+`StageDisplay` (src/core/stage-display.ts) follows the Raffle example: it applies
+a presentation with **one full-screen element** (`pco-stage`) on the chosen
+output/layer once, then pushes self-contained HTML into it with
+`live.setElement(…, { html })`. Every 250 ms it re-renders the countdown from the
+same `endTime` as the timer and sends a patch **only when the HTML changed** —
+about once a second, all inside Spresenter, never a Planning Center call.
+Titles from Planning Center are HTML-escaped. The configuration (output, layer,
+layout, on/off) is stored and re-applied at start.
+
 ## Code layout
 
 ```
@@ -42,6 +53,7 @@ src/
 │   ├── controller.ts    TimerSyncController: state machine, queue, timer decisions
 │   ├── pco-client.ts    Planning Center Services v2 REST client (transport injected)
 │   ├── live-state.ts    LIVE JSON:API document → flat LiveState
+│   ├── stage-display.ts StageDisplay: stage output rendering (HTML + patch throttling)
 │   ├── timer-sync.ts    end-time / offset math, timer patch
 │   ├── messages.ts      panel ⇄ logic protocol + validation
 │   ├── format.ts        countdown formatting for the panel
@@ -81,13 +93,14 @@ The same endpoints are used by the Bitfocus Companion
 
 ## Spresenter surface
 
-| What                           | API                                                                                                | Permission                        |
-| ------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Planning Center HTTP calls     | `net.httpRequest`                                                                                  | `net:connect`                     |
-| Drive the app timer            | `timer.set({ mode: 'target', endTime, … })`, `timer.clear()`                                       | `timer:write` (+ `timer:read`)    |
-| Credentials, selection, offset | `storage.*`                                                                                        | —                                 |
-| Panel                          | `ui.postMessage` / `ui.onmessage`                                                                  | —                                 |
-| Stream Deck / automation       | `requests.on('next' \| 'previous' \| 'resync' \| 'take-control' \| 'release-control' \| 'status')` | — (caller needs `plugins:invoke`) |
+| What                           | API                                                                                                                                | Permission                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Planning Center HTTP calls     | `net.httpRequest`                                                                                                                  | `net:connect`                     |
+| Drive the app timer            | `timer.set({ mode: 'target', endTime, … })`, `timer.clear()`                                                                       | `timer:write` (+ `timer:read`)    |
+| Credentials, selection, offset | `storage.*`                                                                                                                        | —                                 |
+| Panel                          | `ui.postMessage` / `ui.onmessage`                                                                                                  | —                                 |
+| Stage display                  | `outputs.list`, `layers.list`, `live.apply / setState / setElement / clear`                                                        | `outputs:read`, `live:write`      |
+| Stream Deck / automation       | `requests.on('next' \| 'previous' \| 'resync' \| 'take-control' \| 'release-control' \| 'stage-show' \| 'stage-hide' \| 'status')` | — (caller needs `plugins:invoke`) |
 
 `"background": true` keeps the logic running (and the actions registered)
 without the panel open.
