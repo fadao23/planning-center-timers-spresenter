@@ -10,6 +10,8 @@ import {
   Hint,
   Panel,
   Root,
+  Row,
+  Segmented,
   Select,
   StatusIndicator,
   TextInput,
@@ -17,20 +19,24 @@ import {
 } from '@spresenter/plugin-sdk/ui-kit/react';
 import { formatCountdown, formatLength } from '../core/format';
 import type { LogicToUi, PublicState, UiToLogic } from '../core/messages';
+import type { StageLayout, StageState } from '../core/stage-display';
 
 const PLUGIN_ID = 'io.github.fadao23.pco-timers';
-const HEARTBEAT_MS = 5_000;
+/** Fallback heartbeat: only used by the logic thread when its vm has no timers. */
+const HEARTBEAT_MS = 1_000;
 
 function send(msg: UiToLogic) {
   postMessage(msg);
 }
 
-function useLogicState(): PublicState | null {
+function useLogicState(): { state: PublicState | null; stage: StageState | null } {
   const [state, setState] = useState<PublicState | null>(null);
+  const [stage, setStage] = useState<StageState | null>(null);
   useEffect(() => {
     const off = onMessage((raw) => {
       const msg = raw as LogicToUi;
       if (msg?.type === 'state') setState(msg.state);
+      if (msg?.type === 'stage') setStage(msg.stage);
     });
     send({ type: 'hello' });
     const heartbeat = setInterval(() => send({ type: 'tick' }), HEARTBEAT_MS);
@@ -39,7 +45,7 @@ function useLogicState(): PublicState | null {
       clearInterval(heartbeat);
     };
   }, []);
-  return state;
+  return { state, stage };
 }
 
 function useNow(intervalMs = 250): number {
@@ -52,7 +58,7 @@ function useNow(intervalMs = 250): number {
 }
 
 export function App() {
-  const state = useLogicState();
+  const { state, stage } = useLogicState();
   if (!state) {
     return (
       <Root>
@@ -69,6 +75,7 @@ export function App() {
         <>
           <PlanPicker state={state} />
           {state.selection.planId && <LivePanel state={state} />}
+          {stage && <StagePanel stage={stage} />}
         </>
       ) : (
         <CredentialsForm connecting={state.phase === 'connecting'} />
@@ -246,6 +253,92 @@ function LivePanel({ state }: { state: PublicState }) {
           </Button>
         )}
       </Actions>
+    </Panel>
+  );
+}
+
+const LAYOUTS: Array<{ value: StageLayout; label: string }> = [
+  { value: 'full', label: 'Full screen' },
+  { value: 'bar', label: 'Bottom bar' },
+];
+
+function StagePanel({ stage }: { stage: StageState }) {
+  const { config, outputs, layers, active } = stage;
+  const configure = (patch: { output?: string; layer?: number; layout?: StageLayout }) =>
+    send({ type: 'stage-configure', ...patch });
+  return (
+    <Panel label="Stage display">
+      <Row>
+        <Field label="Output">
+          <Select
+            value={config.output ?? ''}
+            onChange={(e) => e.target.value && configure({ output: e.target.value })}
+          >
+            <option value="">Choose the stage screen…</option>
+            {outputs.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Layer" grow={0} style={{ width: 120 }}>
+          {layers.length > 0 ? (
+            <Select
+              value={String(config.layer)}
+              onChange={(e) => configure({ layer: Number(e.target.value) })}
+            >
+              {layers.map((l) => (
+                <option key={l.index} value={l.index}>
+                  {l.name}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <TextInput
+              type="number"
+              min={0}
+              value={config.layer}
+              onChange={(e) =>
+                configure({ layer: Math.max(0, Math.floor(Number(e.target.value))) })
+              }
+            />
+          )}
+        </Field>
+      </Row>
+      <Field label="Layout">
+        <Segmented
+          value={config.layout}
+          options={LAYOUTS}
+          onChange={(layout) => configure({ layout })}
+        />
+      </Field>
+      <Hint>
+        {config.layout === 'bar'
+          ? 'Transparent, with a bar at the bottom: whatever is on the layers below stays visible.'
+          : 'Black full screen: big countdown, current item, next item and the time of day.'}
+      </Hint>
+      <Actions>
+        {active ? (
+          <Button variant="danger" onClick={() => send({ type: 'stage-hide' })}>
+            Hide from stage
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            disabled={config.output === null}
+            onClick={() => send({ type: 'stage-show' })}
+          >
+            Show on stage
+          </Button>
+        )}
+        <Actions.Spacer />
+        <Button size="sm" variant="ghost" onClick={() => send({ type: 'stage-refresh-targets' })}>
+          Refresh outputs
+        </Button>
+      </Actions>
+      {active && <Hint>On screen now. It updates every second and follows Next / Previous.</Hint>}
+      {stage.error && <Alert variant="error">{stage.error}</Alert>}
     </Panel>
   );
 }

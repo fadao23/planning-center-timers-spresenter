@@ -4,6 +4,7 @@
 
 import type { LiveState } from './live-state';
 import type { PlanSummary, ServiceTypeSummary } from './pco-client';
+import type { StageLayout, StageState } from './stage-display';
 import type { TimerTarget } from './timer-sync';
 
 export type Phase = 'needs-credentials' | 'connecting' | 'ready';
@@ -36,9 +37,14 @@ export type UiToLogic =
   | { type: 'next' }
   | { type: 'previous' }
   | { type: 'resync' }
-  | { type: 'tick' };
+  | { type: 'tick' }
+  | { type: 'stage-configure'; output?: string; layer?: number; layout?: StageLayout }
+  | { type: 'stage-show' }
+  | { type: 'stage-hide' }
+  | { type: 'stage-refresh-targets' };
 
-export type LogicToUi = { type: 'state'; state: PublicState };
+export type LogicToUi =
+  { type: 'state'; state: PublicState } | { type: 'stage'; stage: StageState };
 
 const SIMPLE = new Set([
   'hello',
@@ -50,7 +56,13 @@ const SIMPLE = new Set([
   'previous',
   'resync',
   'tick',
+  'stage-show',
+  'stage-hide',
+  'stage-refresh-targets',
 ]);
+
+const LAYOUTS = new Set(['full', 'bar']);
+const MAX_LAYER = 99;
 
 const MAX_FIELD = 200;
 
@@ -71,6 +83,36 @@ export function parseUiMessage(raw: unknown): UiToLogic | null {
     case 'select-plan': {
       const id = field(msg.id);
       return id && /^\d+$/.test(id) ? { type, id } : null;
+    }
+    case 'stage-configure': {
+      const out: {
+        type: 'stage-configure';
+        output?: string;
+        layer?: number;
+        layout?: StageLayout;
+      } = { type };
+      if (msg.output !== undefined) {
+        const output = typeof msg.output === 'number' ? String(msg.output) : field(msg.output);
+        if (!output || !/^\d+$/.test(output)) return null;
+        out.output = output;
+      }
+      if (msg.layer !== undefined) {
+        const layer = msg.layer;
+        if (
+          typeof layer !== 'number' ||
+          !Number.isInteger(layer) ||
+          layer < 0 ||
+          layer > MAX_LAYER
+        ) {
+          return null;
+        }
+        out.layer = layer;
+      }
+      if (msg.layout !== undefined) {
+        if (typeof msg.layout !== 'string' || !LAYOUTS.has(msg.layout)) return null;
+        out.layout = msg.layout as StageLayout;
+      }
+      return Object.keys(out).length > 1 ? out : null;
     }
     default:
       return null;
